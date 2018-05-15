@@ -410,7 +410,33 @@ def run_module():
     module.exit_json(**result)
 
 def main():
-    run_module()
+
+    fields = {
+        "state": {
+            "default": "present",
+            "choices": ["absent", "present", "running" "stopped", "restarted" ],
+            "type": 'str'
+        },
+    }
+
+    choice_map = {
+        # The function set_vm_state should be created
+        "absent": set_vm_state("absent"),
+        "present": set_vm_state("present"),
+        "running": set_vm_state("running"),
+        "stopped": set_vm_state("stopped"),
+        "restarted": set_vm_state("restarted")
+    }
+
+    module = AnsibleModule(argument_spec=fields)
+    is_error, has_changed, result = choice_map.get(
+        module.params['state'])(module.params)
+
+    if not is_error:
+        module.exit_json(changed=has_changed, meta=result)
+    else:
+        module.fail_json(msg="Error deleting repo", meta=result)
+
 
 if __name__ == '__main__':
     main()
